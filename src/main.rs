@@ -16,7 +16,7 @@ const HEIGHT: f32 = 400.;
 #[derive(Resource)]
 struct Score {
     left: u32,
-    right: u32,
+    // right: u32,
 }
 
 #[derive(Default, Copy, Clone)]
