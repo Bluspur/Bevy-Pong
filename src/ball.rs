@@ -8,7 +8,10 @@ use bevy::{
     },
 };
 
-use crate::wall::{Goal, GoalEvent};
+use crate::{
+    schedule::InGameSet,
+    wall::{Goal, GoalEvent},
+};
 use crate::{Collider, CollisionEvent, Velocity};
 
 const COLOR: Color = Color::PURPLE;
@@ -21,10 +24,13 @@ pub struct BallPlugin;
 
 impl Plugin for BallPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_ball).add_systems(
-            FixedUpdate,
-            (handle_collisions, handle_goals, move_ball, despawn_ball),
-        );
+        app.add_systems(Startup, spawn_ball)
+            .add_systems(FixedUpdate, move_ball.in_set(InGameSet::EntityUpdates))
+            .add_systems(
+                FixedUpdate,
+                (handle_collisions, handle_goals).in_set(InGameSet::CollisionDetection),
+            )
+            .add_systems(FixedUpdate, despawn_ball.in_set(InGameSet::DespawnEntities));
     }
 }
 

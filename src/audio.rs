@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{wall::GoalEvent, CollisionEvent};
+use crate::{schedule::InGameSet, wall::GoalEvent, CollisionEvent};
 
 #[derive(Resource)]
 struct CollisionSound(Handle<AudioSource>);
@@ -11,8 +11,12 @@ pub struct AudioPlugin;
 
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, load_audio_assets)
-            .add_systems(FixedUpdate, (play_collision_sound, play_goal_sound));
+        app.add_systems(Startup, load_audio_assets).add_systems(
+            FixedUpdate,
+            (play_collision_sound, play_goal_sound)
+                .chain()
+                .in_set(InGameSet::EntityUpdates),
+        );
     }
 }
 
