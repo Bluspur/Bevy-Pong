@@ -10,7 +10,8 @@ pub struct WallPlugin;
 
 impl Plugin for WallPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_walls);
+        app.add_event::<GoalEvent>()
+            .add_systems(Startup, spawn_walls);
     }
 }
 

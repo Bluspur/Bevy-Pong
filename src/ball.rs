@@ -13,8 +13,8 @@ use crate::{Collider, CollisionEvent, Velocity};
 
 const COLOR: Color = Color::PURPLE;
 const RADIUS: f32 = 10.;
-const SPEED: f32 = 200.;
-const MAX_BOUNCE_ANGLE: f32 = 45.;
+const SPEED: f32 = 400.;
+const MAX_BOUNCE_ANGLE: f32 = 70.;
 const START_POSITION: Vec3 = Vec3::new(0., 0., 0.);
 
 pub struct BallPlugin;
@@ -29,7 +29,7 @@ impl Plugin for BallPlugin {
 }
 
 #[derive(Debug, Component)]
-struct Ball;
+pub struct Ball;
 
 #[derive(Bundle)]
 struct BallBundle<M: Material2d> {
@@ -66,40 +66,41 @@ fn handle_collisions(
     collider_query: Query<(&Transform, &Collider), Without<Goal>>,
     mut collision_events: EventWriter<CollisionEvent>,
 ) {
-    let (mut ball_velocity, ball_transform) = ball_query.single_mut();
-    for (collider_transform, collider) in &collider_query {
-        let collision = collide(
-            ball_transform.translation,
-            Vec2::new(RADIUS * 2., RADIUS * 2.),
-            collider_transform.translation,
-            collider.bounding_box,
-        );
+    if let Ok((mut ball_velocity, ball_transform)) = ball_query.get_single_mut() {
+        for (collider_transform, collider) in &collider_query {
+            let collision = collide(
+                ball_transform.translation,
+                Vec2::new(RADIUS * 2., RADIUS * 2.),
+                collider_transform.translation,
+                collider.bounding_box,
+            );
 
-        if let Some(collision) = collision {
-            collision_events.send_default();
-            let mut reflect_y = false;
+            if let Some(collision) = collision {
+                collision_events.send_default();
+                let mut reflect_y = false;
 
-            match collision {
-                Collision::Left | Collision::Right => {
-                    let relative_y = (ball_transform.translation.y
-                        - collider_transform.translation.y)
-                        / collider.bounding_box.y;
-                    let angle = relative_y * MAX_BOUNCE_ANGLE * PI / 180.;
-                    let direction = if collision == Collision::Left {
-                        -1.0
-                    } else {
-                        1.0
-                    };
-                    ball_velocity.x = angle.cos() * direction;
-                    ball_velocity.y = angle.sin();
+                match collision {
+                    Collision::Left | Collision::Right => {
+                        let relative_y = (ball_transform.translation.y
+                            - collider_transform.translation.y)
+                            / collider.bounding_box.y;
+                        let angle = relative_y * MAX_BOUNCE_ANGLE * PI / 180.;
+                        let direction = if collision == Collision::Left {
+                            -1.0
+                        } else {
+                            1.0
+                        };
+                        ball_velocity.x = angle.cos() * direction;
+                        ball_velocity.y = angle.sin();
+                    }
+                    Collision::Top => reflect_y = ball_velocity.y < 0.0,
+                    Collision::Bottom => reflect_y = ball_velocity.y > 0.0,
+                    Collision::Inside => { /* Do Nothing */ }
                 }
-                Collision::Top => reflect_y = ball_velocity.y < 0.0,
-                Collision::Bottom => reflect_y = ball_velocity.y > 0.0,
-                Collision::Inside => { /* Do Nothing */ }
-            }
 
-            if reflect_y {
-                ball_velocity.y = -ball_velocity.y;
+                if reflect_y {
+                    ball_velocity.y = -ball_velocity.y;
+                }
             }
         }
     }
@@ -110,16 +111,17 @@ fn handle_goals(
     trigger_query: Query<(&Transform, &Collider, &Goal)>,
     mut goal_events: EventWriter<GoalEvent>,
 ) {
-    let ball_transform = ball_query.single();
-    for (trigger_transform, trigger, goal) in &trigger_query {
-        let collision = collide(
-            ball_transform.translation,
-            Vec2::new(RADIUS * 2., RADIUS * 2.),
-            trigger_transform.translation,
-            trigger.bounding_box,
-        );
-        if collision.is_some() {
-            goal_events.send(GoalEvent(goal.side))
+    if let Ok(ball_transform) = ball_query.get_single() {
+        for (trigger_transform, trigger, goal) in &trigger_query {
+            let collision = collide(
+                ball_transform.translation,
+                Vec2::new(RADIUS * 2., RADIUS * 2.),
+                trigger_transform.translation,
+                trigger.bounding_box,
+            );
+            if collision.is_some() {
+                goal_events.send(GoalEvent(goal.side))
+            }
         }
     }
 }

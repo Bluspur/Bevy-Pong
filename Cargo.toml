@@ -13,5 +13,5 @@ opt-level = 3
 
 [dependencies]
 # TODO: Remove dynamic_linking when ready for release.
-bevy = { version = "0.12.1", features = ["dynamic_linking"] }
+bevy = { version = "0.12.1", features = ["dynamic_linking", "wav"] }
 pkg-config = "0.3.28"
