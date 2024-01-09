@@ -6,7 +6,6 @@ pub enum InGameSet {
     EntityUpdates,
     CollisionDetection,
     DespawnEntities,
-    UIAudioProcessing,
 }
 
 pub struct SchedulePlugin;

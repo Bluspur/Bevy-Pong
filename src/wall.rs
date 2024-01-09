@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{schedule::InGameSet, Collider, Score, Side, HEIGHT, WIDTH};
+use crate::{schedule::InGameSet, score::Score, Collider, Side, HEIGHT, WIDTH};
 
 const GOAL_COLOR: Color = Color::DARK_GRAY;
 const COLOR: Color = Color::AQUAMARINE;
