@@ -13,9 +13,7 @@ impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, load_audio_assets).add_systems(
             FixedUpdate,
-            (play_collision_sound, play_goal_sound)
-                .chain()
-                .in_set(InGameSet::EntityUpdates),
+            (play_collision_sound, play_goal_sound).in_set(InGameSet::EntityUpdates),
         );
     }
 }

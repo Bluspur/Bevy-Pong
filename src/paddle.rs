@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use crate::ball::Ball;
+use crate::schedule::InGameSet;
 use crate::{Collider, Side, Velocity, HEIGHT, WIDTH};
 
 const COLOR: Color = Color::SEA_GREEN;
@@ -14,15 +15,17 @@ pub struct PaddlePlugin;
 
 impl Plugin for PaddlePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_paddles).add_systems(
-            FixedUpdate,
-            (handle_player_input, move_paddles, cpu_matches_ball),
-        );
+        app.add_systems(Startup, spawn_paddles)
+            .add_systems(
+                FixedUpdate,
+                (handle_player_input, cpu_matches_ball).in_set(InGameSet::Input),
+            )
+            .add_systems(FixedUpdate, move_paddles.in_set(InGameSet::EntityUpdates));
     }
 }
 
 #[derive(Component)]
-struct Paddle;
+pub struct Paddle;
 #[derive(Component)]
 struct Player;
 #[derive(Component)]
@@ -120,5 +123,12 @@ fn position(side: Side) -> Vec3 {
     match side {
         Side::Left => Vec3::new(-(WIDTH / 2.0) + (OFFSET + half_width), 0., 0.),
         Side::Right => Vec3::new((WIDTH / 2.0) - (OFFSET + half_width), 0., 0.),
+    }
+}
+
+pub fn reset_paddles(mut paddle_query: Query<(&mut Transform, &mut Velocity), With<Paddle>>) {
+    for (mut paddle_transform, mut paddle_velocity) in &mut paddle_query {
+        paddle_transform.translation.y = 0.;
+        **paddle_velocity = Vec3::ZERO;
     }
 }

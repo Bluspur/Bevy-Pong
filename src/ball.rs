@@ -11,6 +11,7 @@ use bevy::{
 use crate::{
     schedule::InGameSet,
     wall::{Goal, GoalEvent},
+    ServeDirection, ServeTimer,
 };
 use crate::{Collider, CollisionEvent, Velocity};
 
@@ -25,12 +26,20 @@ pub struct BallPlugin;
 impl Plugin for BallPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_ball)
-            .add_systems(FixedUpdate, move_ball.in_set(InGameSet::EntityUpdates))
+            .add_systems(
+                FixedUpdate,
+                (serve_ball, move_ball)
+                    .chain()
+                    .in_set(InGameSet::EntityUpdates),
+            )
             .add_systems(
                 FixedUpdate,
                 (handle_collisions, handle_goals).in_set(InGameSet::CollisionDetection),
             )
-            .add_systems(FixedUpdate, despawn_ball.in_set(InGameSet::DespawnEntities));
+            .add_systems(
+                FixedUpdate,
+                reset_ball_goal.in_set(InGameSet::ResetEntities),
+            );
     }
 }
 
@@ -57,8 +66,26 @@ fn spawn_ball(
             ..default()
         },
         Ball,
-        Velocity(Vec3::X),
+        Velocity(Vec3::ZERO),
     ));
+}
+
+fn serve_ball(
+    mut ball_query: Query<&mut Velocity, With<Ball>>,
+    time: Res<Time>,
+    mut serve_timer: ResMut<ServeTimer>,
+    mut serve_direction: ResMut<ServeDirection>,
+) {
+    if serve_timer.timer.tick(time.delta()).just_finished() {
+        let direction = match *serve_direction {
+            ServeDirection::Left => Vec3::NEG_X,
+            ServeDirection::Right => Vec3::X,
+        };
+        for mut ball_velocity in &mut ball_query {
+            ball_velocity.0 = direction;
+        }
+        *serve_direction = serve_direction.opposite();
+    }
 }
 
 fn move_ball(mut ball_query: Query<(&mut Transform, &Velocity), With<Ball>>, time: Res<Time>) {
@@ -132,14 +159,32 @@ fn handle_goals(
     }
 }
 
-fn despawn_ball(
-    mut commands: Commands,
-    ball_query: Query<Entity, With<Ball>>,
+pub fn reset_ball_goal(
+    mut ball_query: Query<(&mut Transform, &mut Velocity), With<Ball>>,
+    mut serve_timer: ResMut<ServeTimer>,
     mut goal_event: EventReader<GoalEvent>,
 ) {
     for _ in goal_event.read() {
-        for entity in &ball_query {
-            commands.entity(entity).despawn_recursive();
+        // Reset the ball
+        for (mut ball_transform, mut ball_velocity) in &mut ball_query {
+            ball_transform.translation = Vec3::ZERO;
+            ball_velocity.0 = Vec3::ZERO;
         }
+
+        serve_timer.timer.reset()
     }
+}
+
+pub fn reset_ball(
+    mut ball_query: Query<(&mut Transform, &mut Velocity), With<Ball>>,
+    mut serve_timer: ResMut<ServeTimer>,
+    mut serve_direction: ResMut<ServeDirection>,
+) {
+    for (mut ball_transform, mut ball_velocity) in &mut ball_query {
+        ball_transform.translation = Vec3::ZERO;
+        ball_velocity.0 = Vec3::ZERO;
+    }
+
+    serve_timer.timer.reset();
+    *serve_direction = ServeDirection::Right;
 }

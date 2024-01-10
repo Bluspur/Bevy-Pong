@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{schedule::InGameSet, score::Score, Collider, Side, HEIGHT, WIDTH};
+use crate::{Collider, Side, HEIGHT, WIDTH};
 
 const GOAL_COLOR: Color = Color::DARK_GRAY;
 const COLOR: Color = Color::AQUAMARINE;
@@ -11,8 +11,7 @@ pub struct WallPlugin;
 impl Plugin for WallPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<GoalEvent>()
-            .add_systems(Startup, spawn_walls)
-            .add_systems(FixedUpdate, update_scores.in_set(InGameSet::EntityUpdates));
+            .add_systems(Startup, spawn_walls);
     }
 }
 
@@ -78,15 +77,6 @@ impl GoalBundle {
             },
             collider: Collider { bounding_box: size },
             goal: Goal { side },
-        }
-    }
-}
-
-fn update_scores(mut goal_events: EventReader<GoalEvent>, mut current_scores: ResMut<Score>) {
-    for event in goal_events.read() {
-        match event.0 {
-            Side::Left => current_scores.left += 1,
-            Side::Right => current_scores.right += 1,
         }
     }
 }

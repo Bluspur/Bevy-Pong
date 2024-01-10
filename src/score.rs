@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{schedule::InGameSet, Side};
+use crate::{schedule::InGameSet, wall::GoalEvent, Side};
 
 // Scoreboard
 const SCOREBOARD_FONT_SIZE: f32 = 42.;
@@ -26,7 +26,9 @@ impl Plugin for ScorePlugin {
             .add_systems(Startup, setup_scoreboard)
             .add_systems(
                 FixedUpdate,
-                update_scoreboard.in_set(InGameSet::EntityUpdates),
+                (update_scoreboard, update_scores)
+                    .chain()
+                    .in_set(InGameSet::EntityUpdates),
             );
     }
 }
@@ -47,7 +49,8 @@ fn setup_scoreboard(mut commands: Commands) {
         })
         .with_children(|parent| {
             parent
-                .spawn(TextBundle::from_sections([TextSection::from_style(
+                .spawn(TextBundle::from_sections([TextSection::new(
+                    "0",
                     TextStyle {
                         font_size: SCOREBOARD_FONT_SIZE,
                         color: SCORE_COLOR,
@@ -56,7 +59,8 @@ fn setup_scoreboard(mut commands: Commands) {
                 )]))
                 .insert(ScoreText { side: Side::Left });
             parent
-                .spawn(TextBundle::from_sections([TextSection::from_style(
+                .spawn(TextBundle::from_sections([TextSection::new(
+                    "0",
                     TextStyle {
                         font_size: SCOREBOARD_FONT_SIZE,
                         color: SCORE_COLOR,
@@ -68,10 +72,27 @@ fn setup_scoreboard(mut commands: Commands) {
 }
 
 fn update_scoreboard(scoreboard: Res<Score>, mut query: Query<(&mut Text, &ScoreText)>) {
-    for (mut text, score_text) in &mut query {
-        match score_text.side {
-            Side::Left => text.sections[0].value = scoreboard.left.to_string(),
-            Side::Right => text.sections[0].value = scoreboard.right.to_string(),
+    if scoreboard.is_changed() {
+        for (mut text, score_text) in &mut query {
+            match score_text.side {
+                Side::Left => text.sections[0].value = scoreboard.left.to_string(),
+                Side::Right => text.sections[0].value = scoreboard.right.to_string(),
+            }
         }
     }
+}
+
+fn update_scores(mut goal_events: EventReader<GoalEvent>, mut current_scores: ResMut<Score>) {
+    for event in goal_events.read() {
+        // We apply the score to the opposite side to where the goal was scored
+        match event.0 {
+            Side::Left => current_scores.right += 1,
+            Side::Right => current_scores.left += 1,
+        }
+    }
+}
+
+pub fn reset_scores(mut current_scores: ResMut<Score>) {
+    current_scores.right = 0;
+    current_scores.left = 0;
 }

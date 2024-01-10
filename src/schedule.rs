@@ -1,33 +1,43 @@
 use bevy::prelude::*;
 
+#[derive(Clone, Eq, PartialEq, Debug, Hash, Default, States)]
+pub enum GameState {
+    #[default]
+    Menu,
+    Reset,
+    Playing,
+}
+
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
 pub enum InGameSet {
     Input,
     EntityUpdates,
     CollisionDetection,
-    DespawnEntities,
+    ResetEntities,
 }
 
 pub struct SchedulePlugin;
 
 impl Plugin for SchedulePlugin {
     fn build(&self, app: &mut App) {
-        app.configure_sets(
-            FixedUpdate,
-            (
-                InGameSet::DespawnEntities,
-                // Flush Point
-                InGameSet::Input,
-                InGameSet::EntityUpdates,
-                InGameSet::CollisionDetection,
+        app.add_state::<GameState>()
+            .configure_sets(
+                FixedUpdate,
+                (
+                    InGameSet::ResetEntities,
+                    // Flush Point
+                    InGameSet::Input,
+                    InGameSet::EntityUpdates,
+                    InGameSet::CollisionDetection,
+                )
+                    .chain()
+                    .run_if(in_state(GameState::Playing)),
             )
-                .chain(),
-        )
-        .add_systems(
-            FixedUpdate,
-            apply_deferred
-                .after(InGameSet::DespawnEntities)
-                .before(InGameSet::Input),
-        );
+            .add_systems(
+                FixedUpdate,
+                apply_deferred
+                    .after(InGameSet::ResetEntities)
+                    .before(InGameSet::Input),
+            );
     }
 }
