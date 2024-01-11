@@ -29,13 +29,13 @@ pub struct Paddle;
 #[derive(Component)]
 struct Player;
 #[derive(Component)]
-struct CPU;
+struct Cpu;
 
 fn spawn_paddles(mut commands: Commands) {
     // Right Paddle (Player)
     commands.spawn((PaddleBundle::new(Side::Right), Player));
     // Left Paddle (CPU)
-    commands.spawn((PaddleBundle::new(Side::Left), CPU));
+    commands.spawn((PaddleBundle::new(Side::Left), Cpu));
 }
 
 fn handle_player_input(
@@ -57,7 +57,7 @@ fn handle_player_input(
 }
 
 fn cpu_matches_ball(
-    mut cpu_paddle_query: Query<(&Transform, &mut Velocity), With<CPU>>,
+    mut cpu_paddle_query: Query<(&Transform, &mut Velocity), With<Cpu>>,
     ball_query: Query<&Transform, With<Ball>>,
 ) {
     let (cpu_transform, mut cpu_velocity) = cpu_paddle_query
