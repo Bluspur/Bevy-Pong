@@ -1,2 +1,4 @@
 /target
 /.vscode
+/.cargo
+rust-toolchain.toml
