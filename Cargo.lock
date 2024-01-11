@@ -340,6 +340,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy-pong"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "pkg-config",
+]
+
+[[package]]
 name = "bevy_a11y"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2685,14 +2693,6 @@ dependencies = [
  "fdeflate",
  "flate2",
  "miniz_oxide",
-]
-
-[[package]]
-name = "pong"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "pkg-config",
 ]
 
 [[package]]
