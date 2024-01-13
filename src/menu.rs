@@ -44,7 +44,6 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
         font: font.clone(),
         font_size: 40.0,
         color: TEXT_COLOR,
-        ..default()
     };
     commands
         .spawn((
@@ -85,7 +84,6 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                                 font,
                                 font_size: 80.,
                                 color: TEXT_COLOR,
-                                ..default()
                             },
                         )
                         .with_style(Style {
