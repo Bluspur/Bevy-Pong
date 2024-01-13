@@ -5,13 +5,16 @@ use crate::{Collider, Side, HEIGHT, WIDTH};
 const GOAL_COLOR: Color = Color::DARK_GRAY;
 const COLOR: Color = Color::AQUAMARINE;
 const THICKNESS: f32 = 20.;
+const CENTER_SECTION_COLOR: Color = Color::DARK_GRAY;
+const CENTER_SECTION_HEIGHT: f32 = 40.;
+const CENTER_GAP_HEIGHT: f32 = 20.;
 
 pub struct WallPlugin;
 
 impl Plugin for WallPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<GoalEvent>()
-            .add_systems(Startup, spawn_walls);
+            .add_systems(Startup, (spawn_walls, spawn_center_line));
     }
 }
 
@@ -21,6 +24,41 @@ fn spawn_walls(mut commands: Commands) {
     commands.spawn(WallBundle::new(WallLocation::Bottom));
     commands.spawn(GoalBundle::new(WallLocation::Right, Side::Right));
     commands.spawn(GoalBundle::new(WallLocation::Left, Side::Left));
+}
+
+// Worked out manually, not an ideal solution
+fn spawn_center_line(mut commands: Commands) {
+    let interval = CENTER_SECTION_HEIGHT + CENTER_GAP_HEIGHT;
+
+    let center_sprite = Sprite {
+        color: CENTER_SECTION_COLOR,
+        custom_size: Some(Vec2 {
+            x: THICKNESS,
+            y: CENTER_SECTION_HEIGHT,
+        }),
+        ..default()
+    };
+
+    // Center Block
+    commands.spawn(SpriteBundle {
+        sprite: center_sprite.clone(),
+        transform: Transform::from_translation(Vec3::new(0., 0., -1.)),
+        ..default()
+    });
+
+    for dy in 1..4 {
+        let absolute_y = interval * (dy as f32);
+        commands.spawn(SpriteBundle {
+            sprite: center_sprite.clone(),
+            transform: Transform::from_translation(Vec3::new(0., absolute_y, -1.)),
+            ..default()
+        });
+        commands.spawn(SpriteBundle {
+            sprite: center_sprite.clone(),
+            transform: Transform::from_translation(Vec3::new(0., -absolute_y, -1.)),
+            ..default()
+        });
+    }
 }
 
 #[derive(Component)]
