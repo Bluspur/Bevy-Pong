@@ -4,7 +4,7 @@ use crate::{schedule::InGameSet, wall::GoalEvent, Side, HEIGHT};
 
 // Scoreboard
 const SCOREBOARD_FONT_SIZE: f32 = 72.;
-const SCORE_COLOR: Color = Color::GOLD;
+const SCORE_COLOR: Color = Color::GRAY;
 const SCORE_GAP: f32 = 60.;
 
 #[derive(Resource)]

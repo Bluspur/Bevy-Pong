@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{Collider, Side, HEIGHT, WIDTH};
 
 const GOAL_COLOR: Color = Color::DARK_GRAY;
-const COLOR: Color = Color::AQUAMARINE;
+const COLOR: Color = Color::WHITE;
 const THICKNESS: f32 = 20.;
 const CENTER_SECTION_COLOR: Color = Color::DARK_GRAY;
 const CENTER_SECTION_HEIGHT: f32 = 40.;

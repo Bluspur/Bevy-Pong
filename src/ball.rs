@@ -15,7 +15,7 @@ use crate::{
 };
 use crate::{Collider, CollisionEvent, Velocity};
 
-const COLOR: Color = Color::PURPLE;
+const COLOR: Color = Color::WHITE;
 const RADIUS: f32 = 10.;
 const SPEED: f32 = 400.;
 const MAX_BOUNCE_ANGLE: f32 = 70.;

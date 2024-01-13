@@ -4,7 +4,7 @@ use crate::ball::Ball;
 use crate::schedule::InGameSet;
 use crate::{Collider, Side, Velocity, HEIGHT, WIDTH};
 
-const COLOR: Color = Color::SEA_GREEN;
+const COLOR: Color = Color::WHITE;
 const SIZE: Vec2 = Vec2::new(20., 60.);
 const OFFSET: f32 = 40.;
 const SPEED: f32 = 500.;

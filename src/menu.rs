@@ -13,8 +13,9 @@ impl Plugin for MenuPlugin {
 }
 
 const TEXT_COLOR: Color = Color::WHITE;
-const BACKGROUND_COLOR: Color = Color::DARK_GREEN;
-const BUTTON_COLOR: Color = Color::AQUAMARINE;
+const BACKGROUND_COLOR: Color = Color::BLACK;
+const BUTTON_COLOR: Color = Color::DARK_GRAY;
+const BORDER_COLOR: Color = Color::WHITE;
 
 #[derive(Component)]
 struct Disabled;
@@ -28,7 +29,9 @@ enum MenuButtonAction {
     Quit,
 }
 
-fn setup_menu(mut commands: Commands) {
+fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let font = asset_server.load("fonts/PixelifySans-VariableFont_wght.ttf");
+
     let button_style = Style {
         width: Val::Px(250.0),
         height: Val::Px(65.0),
@@ -38,6 +41,7 @@ fn setup_menu(mut commands: Commands) {
         ..default()
     };
     let button_text_style = TextStyle {
+        font: font.clone(),
         font_size: 40.0,
         color: TEXT_COLOR,
         ..default()
@@ -65,9 +69,11 @@ fn setup_menu(mut commands: Commands) {
                     style: Style {
                         flex_direction: FlexDirection::Column,
                         align_items: AlignItems::Center,
+                        border: UiRect::all(Val::Px(10.)),
                         ..default()
                     },
                     background_color: BACKGROUND_COLOR.into(),
+                    border_color: BORDER_COLOR.into(),
                     ..default()
                 })
                 .with_children(|parent| {
@@ -76,6 +82,7 @@ fn setup_menu(mut commands: Commands) {
                         TextBundle::from_section(
                             "Bevy Pong",
                             TextStyle {
+                                font,
                                 font_size: 80.,
                                 color: TEXT_COLOR,
                                 ..default()
@@ -86,7 +93,6 @@ fn setup_menu(mut commands: Commands) {
                             ..default()
                         }),
                     );
-                    // Resume Button (TODO)
                     parent
                         .spawn((
                             ButtonBundle {

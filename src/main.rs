@@ -14,6 +14,7 @@ use bevy::prelude::*;
 // Play Area
 const WIDTH: f32 = 600.;
 const HEIGHT: f32 = 400.;
+const BACKGROUND_COLOR: Color = Color::BLACK;
 
 const TIME_TO_SERVE: f32 = 1.;
 
@@ -73,6 +74,7 @@ impl ServeDirection {
 fn main() {
     App::new()
         // Set up Bevy
+        .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_plugins(DefaultPlugins)
         .init_resource::<ServeDirection>()
         // Resources
