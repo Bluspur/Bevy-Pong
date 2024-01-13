@@ -5,7 +5,7 @@ use crate::{schedule::InGameSet, wall::GoalEvent, Side, HEIGHT};
 // Scoreboard
 const SCOREBOARD_FONT_SIZE: f32 = 72.;
 const SCORE_COLOR: Color = Color::GOLD;
-const SCORE_GAP: f32 = 20.;
+const SCORE_GAP: f32 = 60.;
 
 #[derive(Resource)]
 pub struct Score {
@@ -46,7 +46,7 @@ fn setup_scoreboard_worldspace(mut commands: Commands, asset_server: Res<AssetSe
             transform: Transform::from_translation(Vec3 {
                 x: -SCORE_GAP / 2.,
                 y: HEIGHT / 2.,
-                z: 0.,
+                z: -1.,
             }),
             text: Text::from_section("0", text_style.clone()),
             text_anchor: bevy::sprite::Anchor::TopRight,
@@ -59,7 +59,7 @@ fn setup_scoreboard_worldspace(mut commands: Commands, asset_server: Res<AssetSe
             transform: Transform::from_translation(Vec3 {
                 x: SCORE_GAP / 2.,
                 y: HEIGHT / 2.,
-                z: 0.,
+                z: -1.,
             }),
             text: Text::from_section("0", text_style.clone()),
             text_anchor: bevy::sprite::Anchor::TopLeft,
