@@ -13,4 +13,3 @@ opt-level = 3
 
 [dependencies]
 bevy = { version = "0.12.1", features = ["wav"] }
-pkg-config = "0.3.28"
