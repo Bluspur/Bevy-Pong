@@ -77,6 +77,7 @@ struct WallBundle {
 
 impl WallBundle {
     fn new(location: WallLocation) -> WallBundle {
+        let center = location.position();
         let size = location.size();
         WallBundle {
             sprite_bundle: SpriteBundle {
@@ -85,7 +86,7 @@ impl WallBundle {
                     custom_size: Some(size),
                     ..default()
                 },
-                transform: Transform::from_translation(location.position()),
+                transform: Transform::from_translation(center),
                 ..default()
             },
             collider: Collider { bounding_box: size },
@@ -102,6 +103,7 @@ struct GoalBundle {
 
 impl GoalBundle {
     fn new(location: WallLocation, side: Side) -> GoalBundle {
+        let center = location.position();
         let size = location.size();
         GoalBundle {
             sprite_bundle: SpriteBundle {
@@ -110,7 +112,7 @@ impl GoalBundle {
                     custom_size: Some(size),
                     ..default()
                 },
-                transform: Transform::from_translation(location.position()),
+                transform: Transform::from_translation(center),
                 ..default()
             },
             collider: Collider { bounding_box: size },

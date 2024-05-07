@@ -40,17 +40,17 @@ fn spawn_paddles(mut commands: Commands) {
 
 fn handle_player_input(
     mut player_paddle_query: Query<&mut Velocity, With<Player>>,
-    input: Res<Input<KeyCode>>,
+    input: Res<ButtonInput<KeyCode>>,
 ) {
     let mut player_velocity = player_paddle_query
         .get_single_mut()
         .expect("There should only be a single player");
 
     let mut vertical_direction = 0.;
-    if input.pressed(KeyCode::Up) {
+    if input.pressed(KeyCode::ArrowUp) {
         vertical_direction += 1.;
     }
-    if input.pressed(KeyCode::Down) {
+    if input.pressed(KeyCode::ArrowDown) {
         vertical_direction -= 1.;
     }
     player_velocity.y = vertical_direction;
@@ -101,6 +101,8 @@ struct PaddleBundle {
 
 impl PaddleBundle {
     fn new(side: Side) -> PaddleBundle {
+        let center = position(side);
+
         PaddleBundle {
             sprite_bundle: SpriteBundle {
                 sprite: Sprite {
@@ -108,7 +110,7 @@ impl PaddleBundle {
                     custom_size: Some(SIZE),
                     ..default()
                 },
-                transform: Transform::from_translation(position(side)),
+                transform: Transform::from_translation(center),
                 ..default()
             },
             collider: Collider { bounding_box: SIZE },

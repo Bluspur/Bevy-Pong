@@ -109,7 +109,7 @@ fn setup_camera(mut commands: Commands) {
 }
 
 fn open_menu_input(
-    input: Res<Input<KeyCode>>,
+    input: Res<ButtonInput<KeyCode>>,
     mut game_state: ResMut<NextState<schedule::GameState>>,
 ) {
     if input.pressed(KeyCode::Escape) {

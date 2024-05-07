@@ -15,10 +15,10 @@ impl Plugin for MenuPlugin {
 const TEXT_COLOR: Color = Color::WHITE;
 const BACKGROUND_COLOR: Color = Color::BLACK;
 const BUTTON_COLOR: Color = Color::DARK_GRAY;
+const DISABLED_BUTTON_COLOR: Color = Color::rgba(0.15, 0.15, 0.15, 0.8);
+const DISABLED_TEXT_COLOR: Color = Color::DARK_GRAY;
 const BORDER_COLOR: Color = Color::WHITE;
 
-#[derive(Component)]
-struct Disabled;
 #[derive(Component)]
 struct MenuItem;
 
@@ -29,7 +29,11 @@ enum MenuButtonAction {
     Quit,
 }
 
-fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_menu(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    is_first_run: Res<IsFirstRun>,
+) {
     let font = asset_server.load("fonts/PixelifySans-VariableFont_wght.ttf");
 
     let button_style = Style {
@@ -91,11 +95,16 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                             ..default()
                         }),
                     );
+                    let (button_color, text_color) = match **is_first_run {
+                        true => (DISABLED_BUTTON_COLOR, DISABLED_TEXT_COLOR),
+                        false => (BUTTON_COLOR, TEXT_COLOR),
+                    };
+                    // Resume Game Button
                     parent
                         .spawn((
                             ButtonBundle {
                                 style: button_style.clone(),
-                                background_color: BUTTON_COLOR.into(),
+                                background_color: button_color.into(),
                                 ..default()
                             },
                             MenuButtonAction::Resume,
@@ -103,7 +112,10 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                         .with_children(|parent| {
                             parent.spawn(TextBundle::from_section(
                                 "Resume",
-                                button_text_style.clone(),
+                                TextStyle {
+                                    color: text_color,
+                                    ..button_text_style.clone()
+                                },
                             ));
                         });
                     // New Game Button
@@ -149,9 +161,15 @@ fn menu_action(
     for (interaction, menu_button_action) in &interaction_query {
         if *interaction == Interaction::Pressed {
             match menu_button_action {
-                MenuButtonAction::Resume if !**is_first_run => game_state.set(GameState::Playing),
-                MenuButtonAction::New => game_state.set(GameState::Reset),
-                MenuButtonAction::Quit => app_exit_events.send(AppExit),
+                MenuButtonAction::Resume if !**is_first_run => {
+                    game_state.set(GameState::Playing);
+                }
+                MenuButtonAction::New => {
+                    game_state.set(GameState::Reset);
+                }
+                MenuButtonAction::Quit => {
+                    app_exit_events.send(AppExit);
+                }
                 _ => {}
             }
         }

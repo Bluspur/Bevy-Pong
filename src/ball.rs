@@ -1,11 +1,12 @@
 use std::f32::consts::PI;
 
 use bevy::{
-    prelude::*,
-    sprite::{
-        collide_aabb::{collide, Collision},
-        Material2d, MaterialMesh2dBundle,
+    math::{
+        bounding::{Aabb2d, BoundingCircle, BoundingVolume, IntersectsVolume},
+        primitives::Circle,
     },
+    prelude::*,
+    sprite::{Material2d, MaterialMesh2dBundle},
 };
 
 use crate::{
@@ -34,7 +35,7 @@ impl Plugin for BallPlugin {
             )
             .add_systems(
                 FixedUpdate,
-                (handle_collisions, handle_goals).in_set(InGameSet::CollisionDetection),
+                handle_collisions.in_set(InGameSet::CollisionDetection),
             )
             .add_systems(
                 FixedUpdate,
@@ -60,7 +61,7 @@ fn spawn_ball(
     // Ball
     commands.spawn((
         MaterialMesh2dBundle {
-            mesh: meshes.add(shape::Circle::new(RADIUS).into()).into(),
+            mesh: meshes.add(Circle::new(RADIUS)).into(),
             material: materials.add(ColorMaterial::from(COLOR)),
             transform: Transform::from_translation(START_POSITION),
             ..default()
@@ -94,21 +95,60 @@ fn move_ball(mut ball_query: Query<(&mut Transform, &Velocity), With<Ball>>, tim
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+enum Collision {
+    Left,
+    Right,
+    Top,
+    Bottom,
+}
+
+fn collide_with_side(ball: BoundingCircle, wall: Aabb2d) -> Option<Collision> {
+    if !ball.intersects(&wall) {
+        return None;
+    }
+
+    let closest = wall.closest_point(ball.center());
+    let offset = ball.center() - closest;
+    let side = if offset.x.abs() > offset.y.abs() {
+        if offset.x < 0. {
+            Collision::Left
+        } else {
+            Collision::Right
+        }
+    } else if offset.y > 0. {
+        Collision::Top
+    } else {
+        Collision::Bottom
+    };
+
+    Some(side)
+}
+
 fn handle_collisions(
     mut ball_query: Query<(&mut Velocity, &Transform), With<Ball>>,
-    collider_query: Query<(&Transform, &Collider), Without<Goal>>,
+    collider_query: Query<(&Transform, &Collider, Option<&Goal>)>,
     mut collision_events: EventWriter<CollisionEvent>,
+    mut goal_events: EventWriter<GoalEvent>,
 ) {
     if let Ok((mut ball_velocity, ball_transform)) = ball_query.get_single_mut() {
-        for (collider_transform, collider) in &collider_query {
-            let collision = collide(
-                ball_transform.translation,
-                Vec2::new(RADIUS * 2., RADIUS * 2.),
-                collider_transform.translation,
-                collider.bounding_box,
+        for (collider_transform, collider, maybe_goal) in &collider_query {
+            let collision = collide_with_side(
+                BoundingCircle::new(ball_transform.translation.truncate(), RADIUS),
+                Aabb2d::new(
+                    collider_transform.translation.truncate(),
+                    collider.bounding_box / 2.,
+                ),
             );
 
             if let Some(collision) = collision {
+                // Handle goals
+                if let Some(goal) = maybe_goal {
+                    goal_events.send(GoalEvent(goal.side));
+                    return;
+                }
+
+                // Handle collisions with walls or paddle
                 collision_events.send_default();
                 let mut reflect_y = false;
 
@@ -128,32 +168,11 @@ fn handle_collisions(
                     }
                     Collision::Top => reflect_y = ball_velocity.y < 0.0,
                     Collision::Bottom => reflect_y = ball_velocity.y > 0.0,
-                    Collision::Inside => { /* Do Nothing */ }
                 }
 
                 if reflect_y {
                     ball_velocity.y = -ball_velocity.y;
                 }
-            }
-        }
-    }
-}
-
-fn handle_goals(
-    ball_query: Query<&Transform, With<Ball>>,
-    trigger_query: Query<(&Transform, &Collider, &Goal)>,
-    mut goal_events: EventWriter<GoalEvent>,
-) {
-    if let Ok(ball_transform) = ball_query.get_single() {
-        for (trigger_transform, trigger, goal) in &trigger_query {
-            let collision = collide(
-                ball_transform.translation,
-                Vec2::new(RADIUS * 2., RADIUS * 2.),
-                trigger_transform.translation,
-                trigger.bounding_box,
-            );
-            if collision.is_some() {
-                goal_events.send(GoalEvent(goal.side))
             }
         }
     }
